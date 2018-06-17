@@ -11,7 +11,7 @@
 # Build results
 *.pyc
 
-
+BundleArtifacts/
 [Dd]ebug/
 [Rr]elease/
 x64/

@@ -39,9 +39,7 @@ namespace FoscamExplorer.Foscam
             {
                 if (u.Matches(currentVersion))
                 {
-#if !DEBUG
-                    if (currentVersion != u.Latest)
-#endif
+                    if (currentVersion != u.ToVersion)
                     {
                         return u;
                     }
