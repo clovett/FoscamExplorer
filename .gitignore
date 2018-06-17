@@ -213,7 +213,7 @@ $RECYCLE.BIN/
 .DS_Store
 
 *.idb
-/.vs/
+.vs/
 *.VC.db
 
 sdkconfig
