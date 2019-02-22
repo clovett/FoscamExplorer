@@ -174,6 +174,10 @@ namespace FoscamExplorer
                     {
                         StartUpdateSnapshot(false);
                     }
+                    if (CameraImage.Source == null && device.CameraInfo.Unauthorized)
+                    {
+                        CheckUnauthorized();
+                    }
                     break;
                 case "StaticImageUrl":
                     ShowStaticImage(device.CameraInfo.StaticImageUrl);
@@ -181,6 +185,7 @@ namespace FoscamExplorer
                 case "StaticError":
                     ShowError(device.CameraInfo.StaticError);
                     break;
+                case "IsNew":
                 case "Unauthorized":
                     CheckUnauthorized();
                     break;

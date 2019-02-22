@@ -121,12 +121,32 @@ namespace FoscamExplorer
             // show a UI for buying foscam cameras :-) 
             if (store.Cameras.Count == 0)
             {
-                Prompt.Text = "";
+                AddNoCameraMessage();
+            }
+        }
+
+        CameraInfo noCamera;
+
+        private void AddNoCameraMessage()
+        {
+            Prompt.Text = "";
+            if (noCamera == null)
+            {
                 CameraInfo ad = new CameraInfo();
                 ad.Name = StringResources.NoCameraName;
                 ad.StaticImageUrl = "ms-appx:/Assets/fi9821w_0_black.png";
                 ad.StaticError = StringResources.NoCameraMessage;
-                store.MergeNewCamera(ad);
+                noCamera = ad;
+            }
+            store.MergeNewCamera(noCamera);
+        }
+
+        private void RemoveNoCameraMessage()
+        {
+            if (noCamera != null)
+            {
+                store.Cameras.Remove(noCamera);
+                noCamera = null;
             }
         }
 
@@ -147,26 +167,33 @@ namespace FoscamExplorer
                 // get the device properties
                 device = new FoscamDevice() { CameraInfo = newCam };
                 var properties = await device.GetStatus();
-
-                var realName = properties.GetValue<string>("alias");
-                if (!string.IsNullOrEmpty(realName))
+                if (properties.HasValue("Error"))
                 {
-                    newCam.Name = realName;
+                    device.CameraInfo.StaticError = properties.GetValue<string>("Error");
                 }
+                else
+                {                    
+                    var realName = properties.GetValue<string>("alias");
+                    if (!string.IsNullOrEmpty(realName))
+                    {
+                        newCam.Name = realName;
+                    }
 
-                var sysver = properties.GetValue<string>("sys_ver");
-                if (!string.IsNullOrEmpty(sysver))
-                {
-                    newCam.SystemVersion = sysver;
+                    var sysver = properties.GetValue<string>("sys_ver");
+                    if (!string.IsNullOrEmpty(sysver))
+                    {
+                        newCam.SystemVersion = sysver;
+                    }
+
+                    var webver = properties.GetValue<string>("app_ver");
+                    if (!string.IsNullOrEmpty(webver))
+                    {
+                        newCam.WebUiVersion = webver;
+                    }
+
+                    CheckFirmwareVersion(device);
+                    newCam.IsNew = false;
                 }
-
-                var webver = properties.GetValue<string>("app_ver");
-                if (!string.IsNullOrEmpty(webver))
-                {
-                    newCam.WebUiVersion = webver;
-                }
-
-                CheckFirmwareVersion(device);
             }
             
             Prompt.Text = "";
@@ -175,6 +202,11 @@ namespace FoscamExplorer
             newCam.UpdatingFirmware = false;
             newCam.PropertyChanged -= OnCameraPropertyChanged;
             newCam.PropertyChanged += OnCameraPropertyChanged;
+
+            if (store.Cameras.Count > 1 && noCamera != null && store.Cameras.Contains(noCamera))
+            {
+                this.RemoveNoCameraMessage();
+            }
         }
 
         private void CheckFirmwareVersion(FoscamDevice device)
@@ -228,6 +260,10 @@ namespace FoscamExplorer
         private void OnItemClick(object sender, ItemClickEventArgs e)
         {
             var info = e.ClickedItem as CameraInfo;
+            if (info == noCamera)
+            {
+                return;
+            }
             if (info.Unauthorized)
             {
                 LogonPage login = new LogonPage() { UserName = info.UserName, Password = info.Password };
@@ -245,6 +281,7 @@ namespace FoscamExplorer
                         {
                             PropagateLogonToAllCameras(info);
                         }
+                        info.StaticError = "Logging in...";
                         Save();
                     }
                 }));

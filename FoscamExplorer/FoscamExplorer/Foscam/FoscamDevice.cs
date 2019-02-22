@@ -252,7 +252,8 @@ namespace FoscamExplorer.Foscam
                 {
                     Name = "Foscam: " + cameraIP.ToString(),
                     Id = macAddress,
-                    IpAddress = cameraIP
+                    IpAddress = cameraIP,
+                    Unauthorized = true
                 }
             };
 
@@ -312,8 +313,11 @@ namespace FoscamExplorer.Foscam
             }
             catch (Exception e)
             {
-                OnError(this, new ErrorEventArgs() { Message = e.Message });
-                Log.WriteLine("{0}: error getting snapshot: {1}", this.ToString(), e.ToString());
+                if (!CameraInfo.Unauthorized)
+                {
+                    OnError(this, new ErrorEventArgs() { Message = e.Message });
+                    Log.WriteLine("{0}: error getting snapshot: {1}", this.ToString(), e.ToString());
+                }
             }
         }
 
@@ -469,16 +473,90 @@ namespace FoscamExplorer.Foscam
 
         private async Task<PropertyBag> SendCgiRequest(string url)
         {
-            if (!url.EndsWith("get_status.cgi"))
-            {
-                Debug.WriteLine(DateTime.Now.TimeOfDay.ToString() + ": " + url);
-            }
+            Debug.WriteLine(DateTime.Now.TimeOfDay.ToString() + ": " + url);
             dynamic map = new object();
             
             PropertyBag result = new PropertyBag();
+            using (var guard = new RequestGuard(_lock))
+            { 
+                if (!guard.Locked)
+                { 
+                    return result;
+                }
+                var credentials = GetCredentials();
+                try
+                {
+                    HttpClientHandler settings = new HttpClientHandler();
+                    settings.Credentials = credentials;
 
-            try
-            {                
+                    HttpClient client = new HttpClient(settings);
+                    using (HttpResponseMessage msg = await client.GetAsync(new Uri(url), HttpCompletionOption.ResponseHeadersRead))
+                    {
+                        if (msg.StatusCode == HttpStatusCode.OK)
+                        {
+                            HttpContent content = msg.Content;
+                            string text = await content.ReadAsStringAsync();
+                            result = ParseCgiResult(text);
+                        }
+                        else if (msg.StatusCode == HttpStatusCode.Unauthorized)
+                        {
+                            // password didn't work!
+                            result["Error"] = credentials == null ? StringResources.LoginMissing : StringResources.LoginFailed;
+                        }
+                        else
+                        {
+                            Debug.WriteLine("SendCgiRequest: " + msg.StatusCode.ToString());
+                            result["Error"] = msg.StatusCode.ToString();
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine("SendCgiRequest: " + ex.Message);
+                    if (this.CameraInfo.Unauthorized)
+                    {
+                        // well then the login is still not valid
+                        result["Error"] = credentials == null ? StringResources.LoginMissing : StringResources.LoginFailed;
+                    }
+                    else
+                    {
+                        HttpRequestException re = ex as HttpRequestException;
+                        if (re != null)
+                        {
+                            WebException we = re.InnerException as WebException;
+                            if (we != null)
+                            {
+                                result["Error"] = we.Message;
+                                result["StatusCode"] = we.Status.ToString();
+                            }
+                            else
+                            {
+                                result["Error"] = ex.Message;
+                            }
+                        }
+                        else
+                        {
+                            result["Error"] = ex.Message;
+                        }
+                    }
+                }            
+            }
+            return result;
+        }
+
+
+        private async Task<Stream> GetFileRequest(string url)
+        {
+            using (var guard = new RequestGuard(_lock))
+            {
+                if (!guard.Locked)
+                {
+                    return null;
+                }
+                Debug.WriteLine(DateTime.Now.TimeOfDay.ToString() + ": " + url);
+
+                dynamic map = new object();
+
                 HttpClientHandler settings = new HttpClientHandler();
                 settings.Credentials = GetCredentials();
 
@@ -488,67 +566,18 @@ namespace FoscamExplorer.Foscam
                     if (msg.StatusCode == HttpStatusCode.OK)
                     {
                         HttpContent content = msg.Content;
-                        string text = await content.ReadAsStringAsync();
-                        result = ParseCgiResult(text);
+                        this.CameraInfo.Unauthorized = false;
+                        using (Stream stream = await content.ReadAsStreamAsync())
+                        {
+                            return CopyStream(stream);
+                        }
                     }
-                    else
+                    else if (msg.StatusCode == HttpStatusCode.Unauthorized)
                     {
-                        result["Error"] = msg.StatusCode.ToString();
+                        this.CameraInfo.Unauthorized = true;
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                HttpRequestException re = ex as HttpRequestException;
-                if (re != null)
-                {
-                    WebException we = re.InnerException as WebException;
-                    if (we != null)
-                    {
-                        result["Error"] = we.Message;
-                        result["StatusCode"] = we.Status.ToString();
-                    }
-                    else
-                    {
-                        result["Error"] = ex.Message;           
-                    }
-                }
-                else
-                {
-                    result["Error"] = ex.Message;                    
-                }
-            }
-
-            return result;
-        }
-
-
-        private async Task<Stream> GetFileRequest(string url)
-        {
-            Debug.WriteLine(DateTime.Now.TimeOfDay.ToString() + ": " + url);
-
-            dynamic map = new object();
-
-            HttpClientHandler settings = new HttpClientHandler();
-            settings.Credentials = GetCredentials();
-
-            HttpClient client = new HttpClient(settings);
-            using (HttpResponseMessage msg = await client.GetAsync(new Uri(url), HttpCompletionOption.ResponseHeadersRead))
-            {
-                if (msg.StatusCode == HttpStatusCode.OK)
-                {
-                    HttpContent content = msg.Content;
-                    using (Stream stream = await content.ReadAsStreamAsync())
-                    {
-                        return CopyStream(stream);
-                    }
-                }
-                else if (msg.StatusCode == HttpStatusCode.Unauthorized)
-                {
-                    this.CameraInfo.Unauthorized = true;
-                }
-            }
-
             return null;
         }
 
@@ -571,32 +600,40 @@ namespace FoscamExplorer.Foscam
 
             dynamic map = new object();
 
-            HttpClientHandler settings = new HttpClientHandler();
-            settings.Credentials = GetCredentials();
-
-            HttpContent content = new StreamContent(fileContent);
-
-            HttpClient client = new HttpClient(settings);
-            using (HttpResponseMessage msg = await client.PostAsync(new Uri(url), content))
+            using (var guard = new RequestGuard(_lock))
             {
-                if (msg.StatusCode == HttpStatusCode.OK)
+                if (!guard.Locked)
                 {
-                    // great!
-                    HttpContent response = msg.Content;
-                    string text = await response.ReadAsStringAsync();
-                    if (text.StartsWith("error"))
+                    return null;
+                }
+                HttpClientHandler settings = new HttpClientHandler();
+                settings.Credentials = GetCredentials();
+
+                HttpContent content = new StreamContent(fileContent);
+
+                HttpClient client = new HttpClient(settings);
+                using (HttpResponseMessage msg = await client.PostAsync(new Uri(url), content))
+                {
+                    if (msg.StatusCode == HttpStatusCode.OK)
                     {
-                        return text; // error: illegal http frame.
+                        // great!
+                        HttpContent response = msg.Content;
+                        string text = await response.ReadAsStringAsync();
+                        if (text.StartsWith("error"))
+                        {
+                            return text; // error: illegal http frame.
+                        }
+                        this.CameraInfo.Unauthorized = false;
                     }
-                }
-                else if (msg.StatusCode == HttpStatusCode.Unauthorized)
-                {
-                    this.CameraInfo.Unauthorized = true;
-                }
-                else
-                {
-                    // upload failed... so now what?
-                    throw new Exception("File upload to FoscamDevice failed: " + msg.StatusCode.ToString());
+                    else if (msg.StatusCode == HttpStatusCode.Unauthorized)
+                    {
+                        this.CameraInfo.Unauthorized = true;
+                    }
+                    else
+                    {
+                        // upload failed... so now what?
+                        throw new Exception("File upload to FoscamDevice failed: " + msg.StatusCode.ToString());
+                    }
                 }
             }
             return null;
@@ -609,31 +646,38 @@ namespace FoscamExplorer.Foscam
 
             dynamic map = new object();
 
-            HttpClientHandler settings = new HttpClientHandler();
-            settings.Credentials = GetCredentials();
-
-
-            HttpClient client = new HttpClient(settings);
-            using (HttpResponseMessage msg = await client.PostAsync(new Uri(url), formContent))
+            using (var guard = new RequestGuard(_lock))
             {
-                if (msg.StatusCode == HttpStatusCode.OK)
+                if (!guard.Locked)
                 {
-                    // great!
-                    HttpContent response = msg.Content;
-                    string text = await response.ReadAsStringAsync();
-                    if (text.StartsWith("error"))
+                    return null;
+                }
+                HttpClientHandler settings = new HttpClientHandler();
+                settings.Credentials = GetCredentials();
+
+                HttpClient client = new HttpClient(settings);
+                using (HttpResponseMessage msg = await client.PostAsync(new Uri(url), formContent))
+                {
+                    if (msg.StatusCode == HttpStatusCode.OK)
                     {
-                        return text; // error: illegal http frame.
+                        // great!
+                        HttpContent response = msg.Content;
+                        string text = await response.ReadAsStringAsync();
+                        if (text.StartsWith("error"))
+                        {
+                            return text; // error: illegal http frame.
+                        }
+                        this.CameraInfo.Unauthorized = false;
                     }
-                }
-                else if (msg.StatusCode == HttpStatusCode.Unauthorized)
-                {
-                    this.CameraInfo.Unauthorized = true;
-                }
-                else
-                {
-                    // upload failed... so now what?
-                    throw new Exception("File upload to FoscamDevice failed: " + msg.StatusCode.ToString());
+                    else if (msg.StatusCode == HttpStatusCode.Unauthorized)
+                    {
+                        this.CameraInfo.Unauthorized = true;
+                    }
+                    else
+                    {
+                        // upload failed... so now what?
+                        throw new Exception("File upload to FoscamDevice failed: " + msg.StatusCode.ToString());
+                    }
                 }
             }
             return null;
@@ -938,23 +982,31 @@ namespace FoscamExplorer.Foscam
             return error;
         }
 
+
         internal async Task<ZipArchive> GetZipAsync(string zipUrl)
         {
-            HttpClient client = new HttpClient();
-            using (HttpResponseMessage msg = await client.GetAsync(new Uri(zipUrl), HttpCompletionOption.ResponseHeadersRead))
+            using (var guard = new RequestGuard(_lock))
             {
-                if (msg.StatusCode == HttpStatusCode.OK)
+                if (!guard.Locked)
                 {
-                    HttpContent content = msg.Content;
-                    using (var stream = await content.ReadAsStreamAsync())
-                    {
-                        var memoryStream = CopyStream(stream);
-                        return new ZipArchive(memoryStream, System.IO.Compression.ZipArchiveMode.Read);
-                    }
+                    return null;
                 }
-                else
+                HttpClient client = new HttpClient();
+                using (HttpResponseMessage msg = await client.GetAsync(new Uri(zipUrl), HttpCompletionOption.ResponseHeadersRead))
                 {
-                    throw new Exception(msg.StatusCode.ToString());
+                    if (msg.StatusCode == HttpStatusCode.OK)
+                    {
+                        HttpContent content = msg.Content;
+                        using (var stream = await content.ReadAsStreamAsync())
+                        {
+                            var memoryStream = CopyStream(stream);
+                            return new ZipArchive(memoryStream, System.IO.Compression.ZipArchiveMode.Read);
+                        }
+                    }
+                    else
+                    {
+                        throw new Exception(msg.StatusCode.ToString());
+                    }
                 }
             }
         }
@@ -973,6 +1025,43 @@ namespace FoscamExplorer.Foscam
             }
             return null;
         }
+
+        class RequestLock
+        {
+            public bool locked;
+        }
+
+        class RequestGuard : IDisposable
+        {
+            RequestLock _lock;
+            bool locked;
+
+            public bool Locked {  get { return locked; } }
+
+            public RequestGuard(RequestLock rl)
+            {
+                _lock = rl;
+                if (_lock.locked)
+                {
+                    // someone else has it!
+                }
+                else
+                {
+                    this.locked = true;
+                    _lock.locked = true;
+                }
+            }
+
+            public void Dispose()
+            {
+                if (this.locked)
+                {
+                    _lock.locked = false;
+                }
+            }
+        }
+
+        RequestLock _lock = new RequestLock();
     }
 
     public enum UserPermissions

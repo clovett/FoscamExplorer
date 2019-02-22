@@ -435,11 +435,14 @@ namespace FoscamExplorer
             {
                 lastCheckTime = Environment.TickCount;
                 var properties = await device.GetStatus();
-                // device current alarm status，0=no alarm；1=motion detection alarm；2=input alarm；3=voice detection alarm
-                double alarm = (double)properties["alarm_status"];
-                if (alarm == 1)
+                if (properties.ContainsKey("alarm_status"))
                 {
-                    SaveFrame(e.BitmapSource);
+                    // device current alarm status，0=no alarm；1=motion detection alarm；2=input alarm；3=voice detection alarm
+                    double alarm = (double)properties["alarm_status"];
+                    if (alarm == 1)
+                    {
+                        SaveFrame(e.BitmapSource);
+                    }
                 }
             }
         }

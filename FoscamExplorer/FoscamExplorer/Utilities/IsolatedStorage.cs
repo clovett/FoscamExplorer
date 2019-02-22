@@ -48,6 +48,7 @@ namespace FoscamExplorer
                 StorageFile storageFile = cacheFolder.LoadFile(fileName);
                 if (storageFile != null)
                 {
+                    Debug.WriteLine("Loading: " + storageFile.Path);
                     return await LoadFromFile(storageFile);
                 }
             }
