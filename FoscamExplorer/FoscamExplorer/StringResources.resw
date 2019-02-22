@@ -144,4 +144,10 @@
   <data name="UpdatedMessage" xml:space="preserve">
     <value>updated</value>
   </data>
+  <data name="WifiScanning" xml:space="preserve">
+    <value>Scanning for wifi networks...</value>
+  </data>
+  <data name="WifiScanResult" xml:space="preserve">
+    <value>Found {0} wifi networks</value>
+  </data>
 </root>

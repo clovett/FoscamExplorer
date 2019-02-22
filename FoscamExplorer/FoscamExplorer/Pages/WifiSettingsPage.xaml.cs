@@ -84,11 +84,17 @@ namespace FoscamExplorer
 
         private void StartWifiScan()
         {
+            var list = device.GetCachedWifiNetworks();
+            if (list != null && list.Count > 0)
+            {
+                ShowWifiNetworks(list);
+            }
             device.StartScanWifi();
             wifiScanTimer = new DispatcherTimer();
             wifiScanTimer.Interval = TimeSpan.FromSeconds(2);
             wifiScanTimer.Tick += OnWifiScanTick;
             wifiScanTimer.Start();
+            ShowError(StringResources.WifiScanning);
         }
 
 
@@ -103,14 +109,28 @@ namespace FoscamExplorer
         }
 
         async void OnWifiScanTick(object sender, object e)
-        {           
+        {
             var found = await device.GetWifiScan();
             if (found != null)
             {
-                foreach (var network in found)
+                var count = ComboBoxWifi.Items.Count;
+                ShowWifiNetworks(found);
+                if (count != ComboBoxWifi.Items.Count)
                 {
-                    MergeWifiItem(network);
+                    ShowError(string.Format(StringResources.WifiScanResult, ComboBoxWifi.Items.Count));
                 }
+                else
+                {
+                    ShowError("");
+                }
+            }
+        }
+
+        void ShowWifiNetworks(List<WifiNetworkInfo> found)
+        { 
+            foreach (var network in found)
+            {
+                MergeWifiItem(network);
             }
         }
 

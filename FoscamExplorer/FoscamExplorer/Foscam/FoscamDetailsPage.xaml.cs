@@ -449,13 +449,20 @@ namespace FoscamExplorer
 
         private async void SaveFrame(BitmapSource bitmapSource)
         {
-            string fileName = "snap" + imageIndex++ + ".png";
-            var store = DataStore.Instance;
-            var folder = store.SnapshotFolder;
-            var file = await folder.CreateFileAsync(fileName);
-            using (IRandomAccessStream fileStream = await file.OpenAsync(FileAccessMode.ReadWrite))
+            try
             {
-                await WpfUtilities.SaveImageAsync(bitmapSource, fileStream);
+                string fileName = "snap" + imageIndex++ + ".png";
+                var store = DataStore.Instance;
+                var folder = store.SnapshotFolder;
+                var file = await folder.CreateFileAsync(fileName, CreationCollisionOption.ReplaceExisting);
+                using (IRandomAccessStream fileStream = await file.OpenAsync(FileAccessMode.ReadWrite))
+                {
+                    await WpfUtilities.SaveImageAsync(bitmapSource, fileStream);
+                }
+            } 
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Error saving frame: " + ex.Message);
             }
         }
 

@@ -17,7 +17,7 @@
 // 	This code contains a helper class exposing property representations
 // 	of the string resources defined in the specified .ResW file
 // 
-// 	Generated: 02/21/2019 23:45:26
+// 	Generated: 02/22/2019 00:50:09
 // </auto-generatedInfo>
 // --------------------------------------------------------------------------------------------------
 namespace FoscamExplorer
@@ -148,6 +148,28 @@ namespace FoscamExplorer
             get
             {
                 return resourceLoader.GetString("UpdatedMessage");
+            }
+        }
+        
+        /// <summary>
+        /// Localized resource similar to "Scanning for wifi networks..."
+        /// </summary>
+        public static string WifiScanning
+        {
+            get
+            {
+                return resourceLoader.GetString("WifiScanning");
+            }
+        }
+        
+        /// <summary>
+        /// Localized resource similar to "Found {0} wifi networks"
+        /// </summary>
+        public static string WifiScanResult
+        {
+            get
+            {
+                return resourceLoader.GetString("WifiScanResult");
             }
         }
     }

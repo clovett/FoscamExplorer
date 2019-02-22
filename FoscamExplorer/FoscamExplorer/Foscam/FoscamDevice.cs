@@ -884,6 +884,13 @@ namespace FoscamExplorer.Foscam
             }
         }
 
+        internal List<WifiNetworkInfo> GetCachedWifiNetworks()
+        {
+            return _cache;
+        }
+
+        List<WifiNetworkInfo> _cache;
+
         internal async Task<List<WifiNetworkInfo>> GetWifiScan()
         {
             List<WifiNetworkInfo> result = new List<WifiNetworkInfo>();
@@ -915,10 +922,9 @@ namespace FoscamExplorer.Foscam
                     });
                 }
             }
-
+            _cache = result;
             return result;
         }
-
 
 
         internal async Task<string> UpdateWifiSettings()
