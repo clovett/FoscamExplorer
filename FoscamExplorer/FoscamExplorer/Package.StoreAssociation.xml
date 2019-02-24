@@ -2,6 +2,7 @@
 <StoreAssociation xmlns="http://schemas.microsoft.com/appx/2010/storeassociation">
   <Publisher>CN=BC801FCC-0BF8-49D7-9F51-1B625C3BE476</Publisher>
   <PublisherDisplayName>Chris Lovett</PublisherDisplayName>
+  <DeveloperAccountType>MSA</DeveloperAccountType>
   <GeneratePackageHash>http://www.w3.org/2001/04/xmlenc#sha256</GeneratePackageHash>
   <SupportedLocales>
     <Language Code="af" InMinimumRequirementSet="true" />
@@ -358,18 +359,18 @@
     <Language Code="zu-za" InMinimumRequirementSet="true" />
   </SupportedLocales>
   <ProductReservedInfo>
-    <MainPackageIdentityName>43906ChrisLovett.FoscamExplorer</MainPackageIdentityName>
+    <MainPackageIdentityName>43906ChrisLovett.FoscamCameraExplorer</MainPackageIdentityName>
     <ReservedNames>
-      <ReservedName>Foscam Explorer</ReservedName>
+      <ReservedName>Foscam Camera Explorer</ReservedName>
     </ReservedNames>
   </ProductReservedInfo>
   <AccountPackageIdentityNames>
     <MainPackageIdentityName>43906ChrisLovett.BLEWifiHub</MainPackageIdentityName>
     <MainPackageIdentityName>43906ChrisLovett.PittsburghPhoneDemo</MainPackageIdentityName>
     <MainPackageIdentityName>43906ChrisLovett.FireflyFireworks</MainPackageIdentityName>
+    <MainPackageIdentityName>43906ChrisLovett.FoscamExplorer</MainPackageIdentityName>
     <MainPackageIdentityName>43906ChrisLovett.FunChores</MainPackageIdentityName>
     <MainPackageIdentityName>43906ChrisLovett.HollyCompanion</MainPackageIdentityName>
-    <MainPackageIdentityName>43906ChrisLovett.HollyDemoApp</MainPackageIdentityName>
     <MainPackageIdentityName>43906ChrisLovett.MagicLEDLights</MainPackageIdentityName>
     <MainPackageIdentityName>43906ChrisLovett.PremonitionRemote</MainPackageIdentityName>
     <MainPackageIdentityName>43906ChrisLovett.PremonitionRemoteControl</MainPackageIdentityName>
@@ -379,5 +380,5 @@
     <MainPackageIdentityName>43906ChrisLovett.SensorTag</MainPackageIdentityName>
     <MainPackageIdentityName>43906ChrisLovett.TimesTablesSpeedTest</MainPackageIdentityName>
   </AccountPackageIdentityNames>
-  <PackageInfoList LandingUrl="https://developer.microsoft.com/dashboard/Application?appId=9WZDNCRFJQVD" />
+  <PackageInfoList LandingUrl="https://developer.microsoft.com/dashboard/Application?appId=9NF89CK1CQZC" />
 </StoreAssociation>

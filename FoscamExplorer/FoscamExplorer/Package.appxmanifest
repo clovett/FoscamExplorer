@@ -1,9 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10" xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest" xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10" IgnorableNamespaces="uap mp">
-  <Identity Name="43906ChrisLovett.FoscamExplorer" Publisher="CN=BC801FCC-0BF8-49D7-9F51-1B625C3BE476" Version="1.0.6.0" />
-  <mp:PhoneIdentity PhoneProductId="7431bae5-d260-4b04-8a5f-cf2884671282" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
+  <Identity Name="43906ChrisLovett.FoscamCameraExplorer" Publisher="CN=BC801FCC-0BF8-49D7-9F51-1B625C3BE476" Version="1.0.7.0" />
+  <mp:PhoneIdentity PhoneProductId="a7334aa1-e24f-46d7-af3c-fdf80661d6e3" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
   <Properties>
-    <DisplayName>Foscam Explorer</DisplayName>
+    <DisplayName>Foscam Camera Explorer</DisplayName>
     <PublisherDisplayName>Chris Lovett</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
@@ -15,7 +15,7 @@
   </Resources>
   <Applications>
     <Application Id="App" Executable="$targetnametoken$.exe" EntryPoint="FoscamExplorer.App">
-      <uap:VisualElements DisplayName="Foscam Explorer" Square150x150Logo="Assets\Square150x150Logo.png" Square44x44Logo="Assets\Square44x44Logo.png" Description="FoscamExplorer provides an easy to use interface for interacting with your Foscam webcams, including an intuitive way to move the camera position by simply dragging your mouse." BackgroundColor="transparent">
+      <uap:VisualElements DisplayName="Foscam Camera Explorer" Square150x150Logo="Assets\Square150x150Logo.png" Square44x44Logo="Assets\Square44x44Logo.png" Description="Foscam Explorer provides an easy to use interface for interacting with your Foscam webcams, including an intuitive way to move the camera position by simply dragging your mouse.  It also provides Wifi configuration and control over other camera settings like brightness, fps and contrast." BackgroundColor="transparent">
         <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png">
         </uap:DefaultTile>
         <uap:SplashScreen Image="Assets\SplashScreen.png" />

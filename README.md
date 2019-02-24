@@ -4,4 +4,10 @@ FoscamExplorer is a Windows Universal app that provides easy to use interface fo
 
 Simply drag the mouse on the camera image to move the camera location in the direction you want it to go.
 
+![Screenshot](FoscamExplorer/Website/Preview.png)
+
+
 ![Screenshot](FoscamExplorer/Website/Screenshot.png)
+
+
+![Screenshot](FoscamExplorer/Website/Settings.png)

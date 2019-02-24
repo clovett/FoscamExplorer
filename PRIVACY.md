@@ -1,6 +1,6 @@
-# FoscamExplorer Privacy Policy
+# Foscam Explorer Privacy Policy
 
-FoscamExplorer provides easy to use interface for interacting with your Foscam webcams.
+Foscam Explorer provides easy to use interface for interacting with your Foscam webcams.
 
 This is the privacy policy for the FoscamExplorer app for Windows.
 

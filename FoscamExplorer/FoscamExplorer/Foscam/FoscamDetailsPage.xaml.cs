@@ -49,7 +49,7 @@ namespace FoscamExplorer
             this.SizeChanged += FoscamDetailsPage_SizeChanged;
             this.Unloaded += FoscamDetailsPage_Unloaded;
 
-            ButtonUpdate.Visibility = Windows.UI.Xaml.Visibility.Collapsed;
+            //ButtonUpdate.Visibility = Windows.UI.Xaml.Visibility.Collapsed;
         }
 
         void FoscamDetailsPage_Unloaded(object sender, RoutedEventArgs e)
@@ -141,7 +141,7 @@ namespace FoscamExplorer
 
             if (camera.UpdateAvailable != null)
             {
-                ButtonUpdate.Visibility = Windows.UI.Xaml.Visibility.Visible;
+                //ButtonUpdate.Visibility = Windows.UI.Xaml.Visibility.Visible;
             }
 
             this.Reconnect();
@@ -995,5 +995,18 @@ namespace FoscamExplorer
             }
         }
 
+        private void OnDeleteCamera(object sender, RoutedEventArgs e)
+        {
+            if (this.device != null)
+            {
+                CameraInfo cameraToDelete = this.device.CameraInfo;
+                if (cameraToDelete != null)
+                {
+                    DataStore.Instance.Cameras.Remove(cameraToDelete);
+                    Save();
+                    Frame.GoBack();
+                }
+            }
+        }
     }
 }

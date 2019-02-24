@@ -17,7 +17,7 @@
 // 	This code contains a helper class exposing property representations
 // 	of the string resources defined in the specified .ResW file
 // 
-// 	Generated: 02/22/2019 00:50:09
+// 	Generated: 02/24/2019 14:49:53
 // </auto-generatedInfo>
 // --------------------------------------------------------------------------------------------------
 namespace FoscamExplorer
